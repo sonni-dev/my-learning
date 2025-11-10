@@ -148,7 +148,10 @@ class GetGitHub:
             event_timestamp = i["created_at"].strip("Z")
 
             if i['type'] == "PushEvent":
-                commits = int(i["payload"]["size"])
+                # Looks like they removed the size param from this call when checked 11/10/2025
+                # commits = int(i["payload"]["size"])
+                # Placeholder for now
+                commits = 'SOME'
                 event = {
                     "timestamp": datetime.fromisoformat(event_timestamp),
                     "action": f"Pushed {commits} commit(s) to ",

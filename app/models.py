@@ -222,7 +222,7 @@ class Project(db.Model):
 class CodeLink(db.Model):
     __tablename__ = "codelinks"
 
-    id: Mapped[int] = mapped_column(Integer,primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(250), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=True)
     link: Mapped[str] = mapped_column(String(250), nullable=False)
@@ -243,6 +243,7 @@ class CodeLink(db.Model):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey(User.id), index=True)
     # Create reference to the User object. The "codelinks" refers to the codelinks property in the User class.
     user: Mapped["User"] = relationship(back_populates="codelinks")
+
 
 # Create Concepts model for tracking key terms and concepts
 class Concept(db.Model):
@@ -357,12 +358,6 @@ class Event(db.Model):
     repo: Mapped["Repository"] = relationship(back_populates="events")
 
 
-
-
-
-
 # Create table schema in db w app context
 with app.app_context():
     db.create_all()
-
-
