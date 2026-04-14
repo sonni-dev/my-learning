@@ -1,6 +1,66 @@
 .env
 .idea/
 
-.json_samples
+.json_samples/
+*templates/base-bs-templates/
+
+instance/
+
+# Byte-compiled / optimized / DLL files
+*__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS specific
+.DS_Store
+
+# Environment Variables
+.env
+.env.local
+.env.production
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+
+# Local Scratches
+initial_categories.txt.scratch
+.scratch/
+.local/
+
+# Linting config
+.flake8
+
+
+
+# Build artifacts
+staticfiles/
+uploads/
+
+
 
 
