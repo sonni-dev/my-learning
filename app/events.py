@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 import requests
 from requests import HTTPError
-from github import Github, Auth
+# from github import Github, Auth
 
 from app import app, db
 from app.models import Event, Repository
