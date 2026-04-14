@@ -219,9 +219,12 @@ def home():
     github = GetGitHub(user=current_user.name, user_id=current_user.id)
     now = datetime.utcnow()
 
-    # Build feed
-    feed = dashboard.build_feed(github.fetch_events())
-
+    # Build feed - add graceful fallback if API unavailable for demo login
+    try:
+        feed = dashboard.build_feed(github.fetch_events())
+    except Exception:
+        feed = []
+    
     # Get Course stats
     course_stats = dashboard.get_course_stats()
 
