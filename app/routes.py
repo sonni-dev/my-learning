@@ -711,7 +711,7 @@ def add_new_library():
         else:
             add_asset = Concept(
                 concept_term=new_lib.name,
-                desscription=new_lib.description,
+                description=new_lib.description,
                 category='library',
                 date_added=date.today()
             )

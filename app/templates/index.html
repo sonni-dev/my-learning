@@ -505,7 +505,7 @@ Dashboard - myRise
 						<h5 class="card-title">Recent Activity</h5>
 
 						<div class="activity">
-
+							{% if activity %}
 							{% for event in activity %}
 							<div class="activity-item d-flex">
 								<div class="activite-label">{{ event['delta'] }}</div>
@@ -527,6 +527,11 @@ Dashboard - myRise
 								{% endif %}
 							</div><!-- End activity item-->
 							{% endfor %}
+							{% else %}
+							<div class="activity-item d-flex">
+								<div class="activite-label">No recent activity</div>
+							</div><!-- End activity item-->
+							{% endif %}
 						</div>
 
 					</div>
