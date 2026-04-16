@@ -146,6 +146,7 @@ class GetGitHub:
             repo = i["repo"]["name"].split("/")[1]
             repo_id = i["repo"]["id"]
             event_timestamp = i["created_at"].strip("Z")
+            actor = i['actor']['display_login']
 
             if i['type'] == "PushEvent":
                 # Looks like they removed the size param from this call when checked 11/10/2025
@@ -167,6 +168,8 @@ class GetGitHub:
                 }
 
             all_events.append(event)
+        # print(f"=============")
+        # print(all_events)
 
         return all_events
 
