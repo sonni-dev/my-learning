@@ -2,6 +2,7 @@
 import os
 from dotenv import load_dotenv
 import requests
+from requests.exceptions import HTTPError
 
 from app import app, db
 from app.data_manager import DataManager
@@ -14,6 +15,7 @@ from app.events_dict import event_dict
 load_dotenv()
 
 GH_API_URL = "https://api.github.com"
+GH_API_VERSION = "2026-03-10"
 
 
 class GetGitHub:
@@ -124,7 +126,7 @@ class GetGitHub:
         headers = {
             "accept": "application/vnd.github+json",
             "authorization": f"Bearer {self._token}",
-            "X-GitHub-Api-Version": "2022-11-28"
+            "X-GitHub-Api-Version": f"{GH_API_VERSION}"
         }
 
         payload = {
@@ -154,7 +156,7 @@ class GetGitHub:
             # print(payload)
 
             event_config = event_dict.get(event_type)
-            print(event_config)
+            # print(event_config)
 
             action_only = ['CommitCommentEvent', 'DiscussionEvent', 'ForkEvent', 'ReleaseEvent']
             action_issue = ['IssuesEvent', 'IssueCommentEvent']
@@ -163,13 +165,13 @@ class GetGitHub:
             if i['type'] == 'CreateEvent' or i['type'] == 'DeleteEvent':
                 ref_type = i['payload']['ref_type']
                 action = event_config.get('action', event_type)
-                print(f'ref_type: {ref_type}')
-                print(f'action: {action}')
+                # print(f'ref_type: {ref_type}')
+                # print(f'action: {action}')
                 
 
                 event = {
-                    'timestamp': event_timestamp,
-                    'action': f'{actor} {action} {ref_type} | Repo: {repo}',
+                    'timestamp': datetime.fromisoformat(event_timestamp),
+                    'action': f'{actor} {action} {ref_type} | Repo: ',
                     'actor': actor,
                     'repo': repo,
                 }
@@ -179,8 +181,8 @@ class GetGitHub:
             
             elif i['type'] == 'PushEvent':
                 event = {
-                    'timestamp': event_timestamp,
-                    'action': f'{actor} Pushed Commit(s) | Repo: {repo}',
+                    'timestamp': datetime.fromisoformat(event_timestamp),
+                    'action': f'{actor} Pushed Commit(s) | Repo: ',
                     'actor': actor,
                     'repo': repo,
                 }
@@ -192,8 +194,8 @@ class GetGitHub:
                 page_count = len(i['payload']['pages'])
 
                 event = {
-                    'timestamp': event_timestamp,
-                    'action': f"{actor} Created/Updated {page_count} Wiki page(s) | Repo: {repo}",
+                    'timestamp': datetime.fromisoformat(event_timestamp),
+                    'action': f"{actor} Created/Updated {page_count} Wiki page(s) | Repo: ",
                     'actor': actor,
                     'repo': repo,
                 }
@@ -201,16 +203,16 @@ class GetGitHub:
             elif i['type'] == 'PublicEvent':
 
                 event = {
-                    'timestamp': event_timestamp,
-                    'action': f'{actor} Made Repo Public | Repo: {repo}',
+                    'timestamp': datetime.fromisoformat(event_timestamp),
+                    'action': f'{actor} Made Repo Public | Repo: ',
                     'actor': actor,
                     'repo': repo,
                 }
             
             elif i['type'] == 'WatchEvent':
                 event = {
-                    'timestamp': event_timestamp,
-                    'action': f'{actor} started watching | Repo: {repo}',
+                    'timestamp': datetime.fromisoformat(event_timestamp),
+                    'action': f'{actor} started watching | Repo: ',
                     'actor': actor,
                     'repo': repo,
                 }
@@ -220,8 +222,8 @@ class GetGitHub:
                 action = i['payload']['action']
 
                 event = {
-                    'timestamp': event_timestamp,
-                    'action': f'{actor} {action} User: {member} | Repo: {repo}',
+                    'timestamp': datetime.fromisoformat(event_timestamp),
+                    'action': f'{actor} {action} User: {member} | Repo: ',
                     'actor': actor,
                     'repo': repo,
                 }
@@ -231,8 +233,8 @@ class GetGitHub:
                 action = i['payload']['action']
 
                 event = {
-                    'timestamp': event_timestamp,
-                    'action': f'{actor} {action} Pull Request: #{pr} | Repo: {repo}',
+                    'timestamp': datetime.fromisoformat(event_timestamp),
+                    'action': f'{actor} {action} Pull Request: #{pr} | Repo: ',
                     'actor': actor,
                     'repo': repo,
                 }
@@ -243,8 +245,8 @@ class GetGitHub:
 
                 if i['type'] in action_only:
                     event = {
-                        'timestamp': event_timestamp,
-                        'action': f'{actor} {action} {action_str} | Repo: {repo}',
+                        'timestamp': datetime.fromisoformat(event_timestamp),
+                        'action': f'{actor} {action} {action_str} | Repo: ',
                         'actor': actor,
                         'repo': repo,
                     }
@@ -253,8 +255,8 @@ class GetGitHub:
                     issue = i['payload']['issue']['number']
 
                     event = {
-                        'timestamp': event_timestamp,
-                        'action': f'{actor} {action} {action_str}{issue} | Repo: {repo}',
+                        'timestamp': datetime.fromisoformat(event_timestamp),
+                        'action': f'{actor} {action} {action_str}{issue} | Repo: ',
                         'actor': actor,
                         'repo': repo,
                     }
@@ -263,8 +265,8 @@ class GetGitHub:
                     pr = i['payload']['pull_request']['number']
 
                     event = {
-                        'timestamp': event_timestamp,
-                        'action': f'{actor} {action} {action_str}{pr} | Repo: {repo}',
+                        'timestamp': datetime.fromisoformat(event_timestamp),
+                        'action': f'{actor} {action} {action_str}{pr} | Repo: ',
                         'actor': actor,
                         'repo': repo,
                     }
@@ -352,7 +354,7 @@ class GetGitHub:
         headers = {
             "accept": "application/vnd.github+json",
             "authorization": f"Bearer {self._token}",
-            "X-GitHub-Api-Version": "2022-11-28"
+            "X-GitHub-Api-Version": f"{GH_API_VERSION}"
         }
 
         if etag:
@@ -396,7 +398,7 @@ class GetGitHub:
         headers = {
                 "accept": "application/vnd.github+json",
                 "authorization": f"Bearer {self._token}",
-                "X-GitHub-Api-Version": "2022-11-28"
+                "X-GitHub-Api-Version": f"{GH_API_VERSION}"
             }
 
         # Limit to only single most recent activity for repo
@@ -486,7 +488,7 @@ class GetGitHub:
         headers = {
             "accept": "application/vnd.github+json",
             "authorization": f"Bearer {self._token}",
-            "X-GitHub-Api-Version": "2022-11-28"
+            "X-GitHub-Api-Version": f"{GH_API_VERSION}"
         }
 
         # Check for data
@@ -513,26 +515,30 @@ class GetGitHub:
                     # Endpoint to get commits w sha to start listing from
                     commits_url = f"{GH_API_URL}/repos/{self._user}/{repo_name}/commits"
 
-                    response = requests.get(url=commits_url, headers=headers, params=params)
-                    response.raise_for_status()
+                    # Error handling for 409 error causing loop to break (eps files repo)
+                    try:
+                        response = requests.get(url=commits_url, headers=headers, params=params)
+                        response.raise_for_status()
 
-                    print(f"commits call for {repo_name} returned: {response.status_code}")
+                        print(f"commits call for {repo_name} returned: {response.status_code}")
 
-                    # If successful 200, get json data, update db
-                    if response.status_code == 200:
-                        data = response.json()
-                        new_etag = response.headers["etag"]
+                        # If successful 200, get json data, update db
+                        if response.status_code == 200:
+                            data = response.json()
+                            new_etag = response.headers["etag"]
 
-                        new_commits = {
-                            "repo": repo_name,
-                            "commits_etag": new_etag,
-                            "com_data": data
-                        }
+                            new_commits = {
+                                "repo": repo_name,
+                                "commits_etag": new_etag,
+                                "com_data": data
+                            }
 
-                        commits_data.append(new_commits)
-                    # No need to store anything if 304, so else continue loop
-                    else:
-                        continue
+                            commits_data.append(new_commits)
+                        # No need to store anything if 304, so else continue loop
+                        else:
+                            continue
+                    except HTTPError as e:
+                        print(f"Error: {e}")
 
                 # Call to update commit data w Data Manager
                 self.data_manager.update_commit_data(data=commits_data)
@@ -599,7 +605,7 @@ class GetGitHub:
         headers = {
             "accept": "application/vnd.github+json",
             "authorization": f"Bearer {self._token}",
-            "X-GitHub-Api-Version": "2022-11-28"
+            "X-GitHub-Api-Version": f"{GH_API_VERSION}"
         }
 
         # Check for data
