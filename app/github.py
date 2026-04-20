@@ -8,6 +8,7 @@ from app.data_manager import DataManager
 from datetime import datetime, date, timedelta
 from pprint import pprint
 import json
+from app.events_dict import event_dict
 
 
 load_dotenv()
@@ -148,28 +149,191 @@ class GetGitHub:
             event_timestamp = i["created_at"].strip("Z")
             actor = i['actor']['display_login']
 
-            if i['type'] == "PushEvent":
-                # Looks like they removed the size param from this call when checked 11/10/2025
-                # commits = int(i["payload"]["size"])
-                # Placeholder for now
-                commits = 'SOME'
+            payload = i['payload']
+            # print("PAYLOAD")
+            # print(payload)
+
+            event_config = event_dict.get(event_type)
+            print(event_config)
+
+            action_only = ['CommitCommentEvent', 'DiscussionEvent', 'ForkEvent', 'ReleaseEvent']
+            action_issue = ['IssuesEvent', 'IssueCommentEvent']
+            action_pr = ['PullRequestEvent', 'PullRequestReviewEvent', 'PullRequestReviewCommentEvent']
+
+            if i['type'] == 'CreateEvent' or i['type'] == 'DeleteEvent':
+                ref_type = i['payload']['ref_type']
+                action = event_config.get('action', event_type)
+                print(f'ref_type: {ref_type}')
+                print(f'action: {action}')
+                
+
                 event = {
-                    "timestamp": datetime.fromisoformat(event_timestamp),
-                    "action": f"Pushed {commits} commit(s) to ",
-                    "repo": repo
+                    'timestamp': event_timestamp,
+                    'action': f'{actor} {action} {ref_type} | Repo: {repo}',
+                    'actor': actor,
+                    'repo': repo,
                 }
 
-            elif i["type"] == "CreateEvent":
-                create_type = i["payload"]["ref_type"]
+                # print("EVENT OBJ: ")
+                # print(event)
+            
+            elif i['type'] == 'PushEvent':
                 event = {
-                    "timestamp": datetime.fromisoformat(event_timestamp),
-                    "action": f"Created {create_type} in ",
-                    "repo": repo
+                    'timestamp': event_timestamp,
+                    'action': f'{actor} Pushed Commit(s) | Repo: {repo}',
+                    'actor': actor,
+                    'repo': repo,
                 }
+
+                # print('EVENT OBJ')
+                # print(event)
+            
+            elif i['type'] == 'GollumEvent':
+                page_count = len(i['payload']['pages'])
+
+                event = {
+                    'timestamp': event_timestamp,
+                    'action': f"{actor} Created/Updated {page_count} Wiki page(s) | Repo: {repo}",
+                    'actor': actor,
+                    'repo': repo,
+                }
+            
+            elif i['type'] == 'PublicEvent':
+
+                event = {
+                    'timestamp': event_timestamp,
+                    'action': f'{actor} Made Repo Public | Repo: {repo}',
+                    'actor': actor,
+                    'repo': repo,
+                }
+            
+            elif i['type'] == 'WatchEvent':
+                event = {
+                    'timestamp': event_timestamp,
+                    'action': f'{actor} started watching | Repo: {repo}',
+                    'actor': actor,
+                    'repo': repo,
+                }
+            
+            elif i['type'] == 'MemberEvent':
+                member = i['payload']['member']
+                action = i['payload']['action']
+
+                event = {
+                    'timestamp': event_timestamp,
+                    'action': f'{actor} {action} User: {member} | Repo: {repo}',
+                    'actor': actor,
+                    'repo': repo,
+                }
+
+            elif i['type'] == 'PullRequestEvent':
+                pr = i['payload']['number']
+                action = i['payload']['action']
+
+                event = {
+                    'timestamp': event_timestamp,
+                    'action': f'{actor} {action} Pull Request: #{pr} | Repo: {repo}',
+                    'actor': actor,
+                    'repo': repo,
+                }
+            
+            else:
+                action = i['payload']['action']
+                action_str = event_config.get('action_str', {})
+
+                if i['type'] in action_only:
+                    event = {
+                        'timestamp': event_timestamp,
+                        'action': f'{actor} {action} {action_str} | Repo: {repo}',
+                        'actor': actor,
+                        'repo': repo,
+                    }
+                
+                elif i['type'] in action_issue:
+                    issue = i['payload']['issue']['number']
+
+                    event = {
+                        'timestamp': event_timestamp,
+                        'action': f'{actor} {action} {action_str}{issue} | Repo: {repo}',
+                        'actor': actor,
+                        'repo': repo,
+                    }
+                
+                elif i['type'] in action_pr:
+                    pr = i['payload']['pull_request']['number']
+
+                    event = {
+                        'timestamp': event_timestamp,
+                        'action': f'{actor} {action} {action_str}{pr} | Repo: {repo}',
+                        'actor': actor,
+                        'repo': repo,
+                    }
+
+            
+            # event_config = event_dict.get(event_type)
+            # print(event_config)
+
+            # event_details = {
+            #     'action': event_config['action'].format(**payload),
+            #     'actor': actor,
+            #     'repo': repo,
+            #     'ref_type': event_config[ref_type],
+            #     'obj_name': event_config['obj_name'],
+            #     'obj_no': event_config['obj_no'],
+            # }
+
+            # print(f'EVENT_DETAILS:')
+            # print(event_details)
+            # action = event_config['action']
+            # ref_type = event_config['ref_type']
+            # obj_name = event_config['obj_name']
+            # obj_no = event_config['obj_no']
+            # event_refs = event_config.get('refs', {})
+
+            # ref_type = event_config['ref_type']
+            # obj_name = event_refs.get('obj_name', "")
+            # obj_no = event_refs.get('obj_no', None)
+            # action_str = event_config.get('action_str', '')
+
+            # formatted_action = action_str.format(action, actor, ref_type, obj_name, obj_no, repo)
+
+            # action_str = event_config['action_str'].format(**event_details)
+            # print('ACTION_STR:')
+            # print(action_str)
+
+            # event = {
+            #     'timestamp': datetime.fromisoformat(event_timestamp),
+            #     'action': action_str,
+            #     'repo': repo,
+            #     'actor': actor,
+            #     'ref_type': ref_type,
+            #     'obj_name': obj_name,
+            #     'obj_no': obj_no,
+            # }
+            # print(event)
+
+            # if i['type'] == "PushEvent":
+            #     # Looks like they removed the size param from this call when checked 11/10/2025
+            #     # commits = int(i["payload"]["size"])
+            #     # Placeholder for now
+            #     commits = 'SOME'
+            #     event = {
+            #         "timestamp": datetime.fromisoformat(event_timestamp),
+            #         "action": f"Pushed {commits} commit(s) to ",
+            #         "repo": repo
+            #     }
+
+            # elif i["type"] == "CreateEvent":
+            #     create_type = i["payload"]["ref_type"]
+            #     event = {
+            #         "timestamp": datetime.fromisoformat(event_timestamp),
+            #         "action": f"Created {create_type} in ",
+            #         "repo": repo
+            #     }
 
             all_events.append(event)
-        # print(f"=============")
-        # print(all_events)
+        print(f"=============")
+        print(all_events)
 
         return all_events
 
